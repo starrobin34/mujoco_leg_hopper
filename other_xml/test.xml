@@ -1,0 +1,24 @@
+<mujoco model="really_simple_arm">
+    <default>
+        <!-- convert the Fusion 360 coordinate system to MuJoCo -->
+        <geom type="mesh" xyaxes="1 0 0 0 0 1" />
+    </default>
+    <asset>
+        <!-- Fusion outputs meshes with mm units by default, but must be converted to m in MuJoCo,
+        hence the scaling -->
+        <mesh name="base" file="base.stl" scale="0.001 0.001 0.001" />
+        <mesh name="link1" file="link1.stl" scale="0.001 0.001 0.001" />
+        <mesh name="link2" file="link2.stl" scale="0.001 0.001 0.001" />
+    </asset>
+    <worldbody>
+        <body name="base">
+            <geom mesh="base" />
+            <body name="link1">
+                <geom mesh="link1" />
+                <body name="link2">
+                    <geom mesh="link2" />
+                </body>
+            </body>
+        </body>
+    </worldbody>
+</mujoco>

@@ -1,0 +1,86 @@
+<!-- purely visual tendon -->
+<mujoco model="leg_hopper">
+    <compiler angle="radian" />
+    <option timestep='0.0005' iterations='50' solver='PGS' gravity='0 0 -9.81' />
+    <option>
+        <flag contact="enable" /> 
+    </option>
+
+    <contact>
+        <exclude body1="hip_linear_guide" body2="femur" />
+        <exclude body1="femur" body2="tibia" />
+        <exclude body1="tibia" body2="metatarsals" />
+    </contact>
+
+
+    <asset>
+        <texture name="chk" type="2d" builtin="checker"
+                 rgb1="1 1 1" rgb2="0.8 0.8 0.8"
+                 width="512" height="512"/>
+        <material name="mat_chk" texture="chk" texrepeat="10 10"/>
+    </asset>
+
+    <default>
+        <geom type="mesh" xyaxes="-1 0 0 0 0 -1" />
+        <joint type="hinge" limited="true" axis="0 1 0" />
+        <position ctrllimited="true" kp="1" kv="0.1" />
+    </default>
+
+    <asset>
+        <mesh name="femur" file="femur.stl" scale="0.001 0.001 0.001" />
+        <mesh name="tibia" file="tibia.stl" scale="0.001 0.001 0.001" />
+        <mesh name="metatarsals" file="metatarsals.stl" scale="0.001 0.001 0.001" />
+        <mesh name="hip_linear_guide" file="hip_linear_guide.stl" scale="0.001 0.001 0.001" />
+    </asset>
+
+    <worldbody>
+        <body name="ground" pos="0 0 -0.5">
+            <geom type="plane"
+                  size="1 1 0.1"
+                  material="mat_chk"
+                  euler="0 0 0"/>
+        </body>
+
+        <body name="hip_linear_guide">
+        <!-- 2D linear guide x and y -->   
+        <joint name ="hip_linear_x" type="slide" axis="1 0 0" pos="0 0 0" limited="false" 
+                damping="5" frictionloss="1"/>
+            <joint name="hip_linear_z" type="slide" axis="0 0 1" pos="0 0 0" limited="false"
+                damping="5" frictionloss="1" />
+            <geom mesh="hip_linear_guide" density="1000" xyaxes="0 0 1 -1 0 0" />
+            <body name="femur">
+                <site name="spring_A" pos="0.036953 0.00645 -0.083392" />
+                <joint name="hip_joint" pos="0.0 0.0 0.0" axis="0 1 0" limited="true" range="-0.78 0.78" />
+                <geom mesh="femur" density="1000" />
+                <body name="tibia">
+                    <joint name="knee_joint" pos="0.062793 0.0005 -0.10262" axis="0 1 0" limited="true" range="-0.78 0.78" /> 
+                    <geom mesh="tibia" density="1000" />
+                    <body name="metatarsals">
+                        <site name="spring_B" pos="-0.090869 0.00645 -0.24991" />
+                        <joint name="ankle_joint" pos="-0.066306 0.00115 -0.27042" axis="0 1 0" limited="true" range="-0.78 0.78" />
+                        <geom mesh="metatarsals" />
+                    </body>
+                </body>
+            </body>
+        </body>
+    </worldbody>
+
+    <tendon>
+        <spatial name="leg_spring" stiffness="100" springlength="0.20992">
+            <site site="spring_A" />
+            <site site="spring_B" />
+        </spatial>
+    </tendon>
+
+    
+
+    <actuator>
+        <motor name="hip_motor" joint="hip_joint" ctrlrange="-1.0 1.0" />
+        <motor name="knee_motor" joint="knee_joint" ctrlrange="-1.0 1.0" />
+        <!-- <motor name="ankle_motor" joint="ankle_joint" ctrlrange="-1.0 1.0" /> -->
+        <position name="hip_slide_x_pos" joint="hip_linear_x"
+            ctrlrange="-0.5 0.5" kp="200" kv="10" />
+        <position name="hip_slide_z_pos" joint="hip_linear_z"
+            ctrlrange="-0.5 0.5" kp="200" kv="10" />
+    </actuator>
+</mujoco>

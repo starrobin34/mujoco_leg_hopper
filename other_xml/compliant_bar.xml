@@ -1,0 +1,48 @@
+<mujoco model="compliant_four_bar">
+
+    <compiler angle="radian" />
+    <option gravity="0 0 -9.81" />
+
+    <default>
+        <joint damping="0.1" />
+        <geom size="0.02" rgba="0.7 0.7 0.7 1" />
+    </default>
+
+    <worldbody>
+
+        <body name="groundA" pos="0 0 0">
+            <geom type="sphere" size="0.02" rgba="0.2 0.6 0.9 1" />
+        </body>
+
+        <body name="barA" pos="0 0 0">
+            <joint name="hingeA" type="hinge" axis="0 0 1" />
+            <geom type="capsule" fromto="0 0 0  0.2 0 0" size="0.015" />
+
+            <body name="barB" pos="0.2 0 0">
+                <joint name="hingeB" type="hinge" axis="0 0 1" />
+                <geom type="capsule" fromto="0 0 0  0.2 0 0" size="0.015" />
+
+                <body name="compliant_link" pos="0.2 0 0">
+                    <joint name="comp_slide" type="slide" axis="-1 0 0"
+                        range="0 0.2"
+                        solimplimit="0.9 0.95 0.001 0.5 2"
+                        solreflimit="0.003 1" />
+                    <geom type="capsule" fromto="0 0 0  -0.1 0 0" size="0.01" rgba="0.9 0.4 0.4 1" />
+
+                    <body name="groundB" pos="0 0 0">
+                        <geom type="sphere" size="0.02" rgba="0.2 0.6 0.9 1" />
+                    </body>
+                </body>
+            </body>
+        </body>
+
+    </worldbody>
+
+    <actuator>
+        <position name="comp_spring"
+            joint="comp_slide"
+            kp="800" kv="20"
+            ctrlrange="0 0.2" />
+    </actuator>
+
+</mujoco>
