@@ -1,7 +1,0 @@
-<tendon>
-  <fixed name="ankle_spring">
-    <joint joint="knee" coef="0.7"/>
-    <joint joint="ankle" coef="1.2"/>
-    <spring stiffness="5000"/>
-  </fixed>
-</tendon>

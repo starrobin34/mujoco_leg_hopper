@@ -1,10 +1,15 @@
 <!-- purely visual tendon -->
 <mujoco model="leg_hopper">
     <compiler angle="radian" />
-    <option timestep='0.0005' iterations='50' solver='PGS' gravity='0 0 -9.81' />
+    <option timestep='0.0001' iterations='50' solver='PGS' gravity='0 0 -9.81' />
     <option>
         <flag contact="enable" /> 
     </option>
+
+    <visual>
+        <global offwidth="1920" offheight="1080" />
+    </visual>
+
 
     <contact>
         <exclude body1="hip_linear_guide" body2="femur" />
@@ -21,9 +26,10 @@
     </asset>
 
     <default>
-        <geom type="mesh" xyaxes="-1 0 0 0 0 -1" />
+        <geom type="mesh" xyaxes="-1 0 0 0 0 -1" condim='3' conaffinity='15' />
         <joint type="hinge" limited="true" axis="0 1 0" />
         <position ctrllimited="true" kp="1" kv="0.1" />
+        <!-- kp is proportional gain, kv is damping gain -->
     </default>
 
     <asset>
@@ -34,53 +40,85 @@
     </asset>
 
     <worldbody>
-        <body name="ground" pos="0 0 -0.5">
+        <body name="ground" pos="0 0 -0.35">
             <geom type="plane"
-                  size="1 1 0.1"
-                  material="mat_chk"
-                  euler="0 0 0"/>
+                size="50 50 0.1"
+                material="mat_chk"
+                euler="0 0 0"
+                friction="1.3 0.1 0.01"
+                solimp="0.9 0.95 0.01"
+                solref="0.005 1"
+                margin="0.01"
+                condim='3' conaffinity='15' />
         </body>
 
+        <!-- Tendon mass for inertia but no physical interaction -->
+
+        <!-- everything is in SI Units, therefore moment of inertia is in kg*m^2 -->
         <body name="hip_linear_guide">
-        <!-- 2D linear guide x and y -->   
+            <!-- make the camera track the linear guide all the time  -->
+            <!-- <camera name="track" mode="trackcom" pos="10 -0.5 0.8" xyaxes="1 0 0 0 1 0" /> -->
+            <!-- 2D linear guide x and y, frictionloss is  -->   
         <joint name ="hip_linear_x" type="slide" axis="1 0 0" pos="0 0 0" limited="false" 
-                damping="5" frictionloss="1"/>
+                />
             <joint name="hip_linear_z" type="slide" axis="0 0 1" pos="0 0 0" limited="false"
-                damping="5" frictionloss="1" />
-            <geom mesh="hip_linear_guide" density="1000" xyaxes="0 0 1 -1 0 0" />
+                />
+            <geom mesh="hip_linear_guide" density="10" xyaxes="0 0 1 -1 0 0" />
+
             <body name="femur">
-                <site name="spring_A" pos="0.036953 0.00645 -0.083392" />
-                <joint name="hip_joint" pos="0.0 0.0 0.0" axis="0 1 0" limited="true" range="-0.78 0.78" />
-                <geom mesh="femur" density="1000" />
+                <inertial pos="0.006561 0.00810 -0.016928" mass="0.2"
+                    fullinertia="8.135e-4 8.553e-4 4.475e-4 -3.63985e-7 2.497e-4 -1.181964e-5"/>
+                <site name="spring_A" pos="0.036953 0.0077 -0.083392" />
+                <joint name="hip_joint" pos="0.0 0.0 0.0" axis="0 1 0" limited="true" range="-1 1"
+                    damping="0.01" />
+                <geom mesh="femur" density="0" />
+                
                 <body name="tibia">
-                    <joint name="knee_joint" pos="0.062793 0.0005 -0.10262" axis="0 1 0" limited="true" range="-0.78 0.78" /> 
-                    <geom mesh="tibia" density="1000" />
+                    <inertial pos="0.010844 0.008461 -0.18786" mass="0.08"
+                        fullinertia="7.895e-4 1.229e-3 4.483e-4  1.354515e-6 -5.707e-4 1.510705e-6" />
+                    <joint name="knee_joint" pos="0.062793 0.0005 -0.10262" axis="0 1 0" limited="true" range="-1 1" damping = "0.01" /> 
+                    <geom mesh="tibia" density="0" />
+
                     <body name="metatarsals">
-                        <site name="spring_B" pos="-0.090869 0.00645 -0.24991" />
-                        <joint name="ankle_joint" pos="-0.066306 0.00115 -0.27042" axis="0 1 0" limited="true" range="-0.78 0.78" />
-                        <geom mesh="metatarsals" />
+                        <inertial pos="-0.047396 0.00845 -0.288587" mass="0.02"
+                            fullinertia="1.643696e-5 3.9197592e-5 2.3084088e-5  -1.690e-14 1.8807458e-5 1.031e-14" />
+                        <site name="spring_B" pos="-0.090869 0.0077 -0.24991" />
+                        <joint name="ankle_joint" pos="-0.066306 0.01045 -0.27042" axis="0 1 0"
+                            limited="true" range="-1 1" damping="0.01" />
+                        <geom mesh="metatarsals" density="0" friction="1.3 0.02 0.002" />
                     </body>
                 </body>
             </body>
         </body>
     </worldbody>
 
+    <!-- Spring setup as tendon: Tension Springforce in python wrapper, 
+    by setting the range to min l = l0 = 0.20992 we enforce rigid tendon under compression -->
+
     <tendon>
-        <spatial name="leg_spring" stiffness="100" springlength="0.20992">
+        <spatial name="leg_spring"
+            limited="true"
+            range="0.20992 0.5"
+            solreflimit="0.002 1" solimplimit="0.9 0.95 0.001" margin="0.001">
             <site site="spring_A" />
             <site site="spring_B" />
         </spatial>
     </tendon>
 
-    
 
+    
     <actuator>
-        <motor name="hip_motor" joint="hip_joint" ctrlrange="-1.0 1.0" />
-        <motor name="knee_motor" joint="knee_joint" ctrlrange="-1.0 1.0" />
+        <motor name="hip_motor" joint="hip_joint" ctrlrange="-20 20" />
+        <motor name="knee_motor" joint="knee_joint"  ctrlrange="-3 3" />
+        <!-- add the gearing to the actuator, not for now since complicates torque input -->
+        <!-- <motor name="hip_motor" joint="hip_joint" gear= "10" ctrlrange="-0.2 0.2" />
+        <motor name="knee_motor" joint="knee_joint" gear="10" ctrlrange="-0.2 0.2" /> -->
         <!-- <motor name="ankle_motor" joint="ankle_joint" ctrlrange="-1.0 1.0" /> -->
-        <position name="hip_slide_x_pos" joint="hip_linear_x"
-            ctrlrange="-0.5 0.5" kp="200" kv="10" />
-        <position name="hip_slide_z_pos" joint="hip_linear_z"
-            ctrlrange="-0.5 0.5" kp="200" kv="10" />
+        <!-- <position name="hip_slide_x_pos" joint="hip_linear_x"
+            ctrlrange="-10 10" kp="5000" kv="100" /> -->
+        <!-- <position name="hip_slide_z_pos" joint="hip_linear_z"
+            ctrlrange="-0.5 0.5" kp="200" kv="10" /> -->
+        <!-- spring force along the tendon path -->
+        <general name="leg_spring_actuator" tendon="leg_spring" gainprm="-1" biasprm="0 0 0" ctrlrange="0 100" />
     </actuator>
 </mujoco>
