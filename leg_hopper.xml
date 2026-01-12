@@ -1,7 +1,7 @@
 <!-- purely visual tendon -->
 <mujoco model="leg_hopper">
-    <compiler angle="radian" />
-    <option timestep='0.0001' iterations='50' solver='PGS' gravity='0 0 -9.81' />
+    <compiler angle="radian" meshdir='stl_meshes' />
+    <option timestep='0.0001' iterations='50' solver='PGS' gravity='0 0 -9.81'  />
     <option>
         <flag contact="enable" /> 
     </option>
@@ -114,8 +114,8 @@
         <!-- <motor name="hip_motor" joint="hip_joint" gear= "10" ctrlrange="-0.2 0.2" />
         <motor name="knee_motor" joint="knee_joint" gear="10" ctrlrange="-0.2 0.2" /> -->
         <!-- <motor name="ankle_motor" joint="ankle_joint" ctrlrange="-1.0 1.0" /> -->
-        <!-- <position name="hip_slide_x_pos" joint="hip_linear_x"
-            ctrlrange="-10 10" kp="5000" kv="100" /> -->
+        <position name="hip_slide_x_pos" joint="hip_linear_x"
+            ctrlrange="-10 10" kp="5000" kv="100" />
         <!-- <position name="hip_slide_z_pos" joint="hip_linear_z"
             ctrlrange="-0.5 0.5" kp="200" kv="10" /> -->
         <!-- spring force along the tendon path -->
